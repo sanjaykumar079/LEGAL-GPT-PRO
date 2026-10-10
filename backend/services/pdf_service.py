@@ -1,4 +1,4 @@
-import fitz  # PyMuPDF
+import pymupdf  # Changed from fitz to pymupdf
 from typing import List, Dict, Any
 from dataclasses import dataclass
 import os
@@ -33,7 +33,7 @@ class PDFService:
             raise ValueError("File must be a PDF")
         
         try:
-            doc = fitz.open(pdf_path)
+            doc = pymupdf.open(pdf_path)  # Changed from fitz to pymupdf
             pages = []
             
             for page_num in range(len(doc)):
@@ -52,7 +52,7 @@ class PDFService:
             doc.close()
             return pages
             
-        except fitz.FileDataError as e:
+        except pymupdf.FileDataError as e:  # Changed from fitz to pymupdf
             raise ValueError(f"Corrupt or encrypted PDF: {str(e)}")
         except Exception as e:
             raise Exception(f"PDF extraction failed: {str(e)}")
@@ -70,7 +70,7 @@ class PDFService:
     def get_document_info(self, pdf_path: str) -> Dict[str, Any]:
         """Get PDF metadata without full extraction"""
         try:
-            doc = fitz.open(pdf_path)
+            doc = pymupdf.open(pdf_path)  # Changed from fitz to pymupdf
             info = {
                 'filename': os.path.basename(pdf_path),
                 'total_pages': len(doc),
