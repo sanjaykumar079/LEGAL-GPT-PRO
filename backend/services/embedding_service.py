@@ -104,6 +104,9 @@ class EmbeddingService:
             chunks_with_embeddings.append(chunk_with_emb)
         
         return chunks_with_embeddings
+    # Add this function at the end of your embedding_service.py file
+
+
     
     def semantic_similarity(self, text1: str, text2: str) -> float:
         """
@@ -190,3 +193,14 @@ def test_similarity(text1: str, text2: str) -> float:
     """Quick function to test similarity between two texts"""
     service = EmbeddingService()
     return service.semantic_similarity(text1, text2)
+# Replace the get_embedding_service function with this corrected version:
+
+def get_embedding_service():
+    """Get the best available embedding service"""
+    try:
+        # Try to use Sentence Transformers first
+        return EmbeddingService()
+    except Exception as e:
+        print(f"Warning: Sentence Transformers not available: {e}")
+        print("Using fallback embedding service")
+        return FallbackEmbeddingService()
