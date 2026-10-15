@@ -14,6 +14,14 @@ class EmbeddingService:
         self.model_name = model_name
         self.model = None
         self._load_model()
+
+    def generate_normalized_embedding(self, text: str) -> np.ndarray:
+        embedding = self.generate_embedding(text)
+        # Normalize to unit vector for cosine similarity
+        norm = np.linalg.norm(embedding)
+        if norm > 0:
+            embedding = embedding / norm
+        return embedding
     
     def _load_model(self):
         """Load the Sentence Transformer model"""
@@ -86,6 +94,17 @@ class EmbeddingService:
         chunk_with_embedding['embedding_dim'] = len(embedding)
         
         return chunk_with_embedding
+    def add_chunks_with_normalized_embeddings(self, chunks: List[Dict[str, Any]]):
+        """Add chunks with normalized embeddings"""
+        for chunk in chunks:
+            # Normalize the embedding before storing
+            if 'embedding' in chunk:
+                embedding = np.array(chunk['embedding'])
+                norm = np.linalg.norm(embedding)
+                if norm > 0:
+                    chunk['embedding'] = (embedding / norm).tolist()
+        
+        return self.add_chunks(chunks)
     
     def chunks_to_embeddings(self, chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """

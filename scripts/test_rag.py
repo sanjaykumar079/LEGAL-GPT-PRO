@@ -15,7 +15,8 @@ def main():
     print("1️⃣ Initializing RAG service...")
     
     try:
-        rag_service = RAGService()
+        rag_service = RAGService(llm_model="llama3:latest")
+
     except Exception as e:
         print(f"❌ Failed to initialize RAG service: {e}")
         print("Make sure Ollama is running: ollama serve")
