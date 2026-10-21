@@ -1,12 +1,4 @@
-"""
-Contract & risk analysis service.
 
-Reuses the full text of a processed document (re-extracted from disk) and
-asks the active LLM provider to return a strict JSON structure: summary,
-key clauses, parties, obligations, and a risk breakdown. This keeps the
-same provider-agnostic LLM abstraction used by chat -- no separate
-integration needed.
-"""
 import json
 import re
 

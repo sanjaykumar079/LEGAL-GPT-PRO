@@ -6,9 +6,7 @@ from services.llm_service import LLMService
 class RAGService:
     def __init__(self, chroma_persist_directory: str = "./chroma_db", 
                  llm_model: str = "llama3:latest"):
-        """
-        Initialize RAG service with configurable components
-        """
+ 
         print("Initializing RAG Service...")
         self.embedding_service = EmbeddingService()
         self.chroma_service = ChromaDBService(persist_directory=chroma_persist_directory)
