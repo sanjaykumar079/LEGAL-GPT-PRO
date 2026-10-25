@@ -1,9 +1,10 @@
 import chromadb
 from chromadb.config import Settings
-import uuid, os
+import uuid
 from typing import List, Dict, Any, Optional
 import numpy as np
 from services.embedding_service import EmbeddingService
+
 
 class ChromaDBService:
     COLLECTION_NAME = "legal_documents"
@@ -19,12 +20,11 @@ class ChromaDBService:
             persist_directory=self.persist_directory,
             anonymized_telemetry=False
         ))
-        # Force cosine space so HNSW ranking matches our cosine score
         self.collection = self.client.get_or_create_collection(
             name=self.COLLECTION_NAME,
             metadata={
                 "hnsw:space": "cosine",
-                "description": "Legal chunks (cosine)"
+                "description": "Legal document chunks (cosine distance)"
             }
         )
         print(f"✅ ChromaDB ready ({self.collection.count()} items)")
@@ -39,7 +39,7 @@ class ChromaDBService:
             emb = c['embedding']
             embs.append(emb.tolist() if isinstance(emb, np.ndarray) else emb)
             metas.append({
-                'document': c.get('document', 'unknown'),
+                'document': str(c.get('document', 'unknown')),
                 'page': int(c.get('page', 0)),
                 'chunk_index': int(c.get('chunk_index', 0)),
                 'char_count': int(c.get('char_count', 0)),
@@ -63,13 +63,13 @@ class ChromaDBService:
 
         out = []
         for i in range(len(res['ids'][0])):
-            stored_emb = res['embeddings'][0][i] if res['embeddings'][0][i] else qn
-            cos = EmbeddingService.cosine_similarity(qn, stored_emb)
+            stored = res['embeddings'][0][i]
+            cos = EmbeddingService.cosine_similarity(qn, stored) if stored else 0.0
             out.append({
                 'id': res['ids'][0][i],
                 'text': res['documents'][0][i],
                 'metadata': res['metadatas'][0][i],
-                'cosine_similarity': round(cos, 4),   # REAL cosine, in [-1, 1]
+                'cosine_similarity': round(float(cos), 4),
                 'distance': res['distances'][0][i],
             })
         return out
@@ -78,4 +78,26 @@ class ChromaDBService:
         count = self.collection.count()
         docs, pages = set(), set()
         if count:
-            sample = self.collection.get(limit=min(50, count),
+            sample = self.collection.get(limit=min(50, count), include=['metadatas'])
+            if sample['metadatas']:
+                for m in sample['metadatas']:
+                    docs.add(m.get('document', 'unknown'))
+                    pages.add(m.get('page', 0))
+        return {
+            'total_chunks': count,
+            'unique_documents': len(docs),
+            'sample_pages': sorted(list(pages))[:10],
+            'collection_name': self.COLLECTION_NAME,
+        }
+
+    def clear_collection(self):
+        all_items = self.collection.get(include=['metadatas'])
+        if all_items['ids']:
+            self.collection.delete(ids=all_items['ids'])
+            print(f"✅ Cleared {len(all_items['ids'])} items")
+        else:
+            print("✅ Collection already empty")
+
+    def delete_collection(self):
+        self.client.delete_collection(name=self.COLLECTION_NAME)
+        print("✅ Collection deleted")
