@@ -88,14 +88,7 @@ async def chat_stream(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Server-Sent-Events style streaming response for the chat UI.
-
-    Emits newline-delimited JSON events:
-      {"type": "sources", "sources": [...]}
-      {"type": "token", "content": "..."}
-      {"type": "confidence", "confidence": 0.87, "match_quality": "High", "top_similarity": 0.91}
-      {"type": "done", "conversation_id": "...", "message_id": "..."}
-    """
+ 
     # Improvement #7 — Document Ownership Validation
     if request.document_id:
         await document_service.validate_document_access(

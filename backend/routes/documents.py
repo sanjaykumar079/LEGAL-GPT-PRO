@@ -27,9 +27,7 @@ async def get_document_status(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Lightweight polling endpoint so the frontend can track processing progress.
-    Returns status (uploaded | processing | ready | failed) and chunk_count.
-    """
+   
     doc = await document_service.get_document(db, document_id, user_id=current_user.id)
     return DocumentStatusResponse(
         id=doc.id,
